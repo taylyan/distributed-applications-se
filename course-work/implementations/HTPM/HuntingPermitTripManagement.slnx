@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="HuntingPermitTripManagement.Api/HuntingPermitTripManagement.Api.csproj" />
+  <Project Path="HuntingPermitTripManagement.Web/HuntingPermitTripManagement.Web.csproj" />
 </Solution>
