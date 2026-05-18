@@ -1,0 +1,896 @@
+openapi: 3.0.0
+info:
+  title: Hunting Permit & Trip Management API
+  description: "API for managing hunting permits, trips, locations and harvest records"
+  version: "1.0"
+servers:
+- url: https://virtserver.swaggerhub.com/pupaisihilendarski/HTPM/1.0
+  description: SwaggerHub API Auto Mocking
+- url: http://localhost:5000/api
+security:
+- bearerAuth: []
+paths:
+  /users:
+    get:
+      summary: Get all users
+      description: Returns a paginated list of users with optional filtering
+      parameters:
+      - name: firstName
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: lastName
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: pageNumber
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 1
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+      - name: sortBy
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - firstName
+          - lastName
+          - createdAt
+      - name: sortDirection
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      summary: Create a new user
+      description: Creates a new user with validation rules
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+        required: true
+      responses:
+        "201":
+          description: User created successfully
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+    put:
+      summary: Update user
+      description: Updates an existing user
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+        required: true
+      responses:
+        "200":
+          description: User updated successfully
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: User not found
+    delete:
+      summary: Delete user
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: User deleted successfully
+        "404":
+          description: User not found
+  /auth/login:
+    post:
+      summary: User login
+      description: Authenticates user and returns JWT token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/auth_login_body"
+        required: true
+      responses:
+        "200":
+          description: JWT token returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_200"
+        "401":
+          description: Invalid credentials
+  /permits:
+    get:
+      summary: Get all permits
+      description: Returns a paginated list of permits with filtering
+      parameters:
+      - name: userId
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: isActive
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: permitType
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: pageNumber
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 1
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+      - name: sortBy
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - issueDate
+          - expirationDate
+      - name: sortDirection
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+      responses:
+        "200":
+          description: List of permits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Permit"
+    post:
+      summary: Create permit
+      description: Creates a new permit for a user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Permit"
+        required: true
+      responses:
+        "201":
+          description: Permit created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /permits/{id}:
+    get:
+      summary: Get permit by ID
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Permit found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permit"
+        "404":
+          description: Permit not found
+    put:
+      summary: Update permit
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Permit"
+        required: true
+      responses:
+        "200":
+          description: Permit updated
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Permit not found
+    delete:
+      summary: Delete permit
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Permit deleted
+        "404":
+          description: Permit not found
+  /trips:
+    get:
+      summary: Get all hunting trips
+      description: Returns a paginated list of hunting trips with filtering
+      parameters:
+      - name: userId
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: locationId
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: fromDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: toDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: pageNumber
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 1
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+      - name: sortBy
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - tripDate
+          - durationHours
+      - name: sortDirection
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+      responses:
+        "200":
+          description: List of hunting trips
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HuntingTrip"
+    post:
+      summary: Create hunting trip
+      description: "Creates a new hunting trip (requires valid user, permit and location)"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HuntingTrip"
+        required: true
+      responses:
+        "201":
+          description: Trip created successfully
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /trips/{id}:
+    get:
+      summary: Get hunting trip by ID
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Trip found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HuntingTrip"
+        "404":
+          description: Trip not found
+    put:
+      summary: Update hunting trip
+      description: Updates an existing hunting trip
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HuntingTrip"
+        required: true
+      responses:
+        "200":
+          description: Trip updated successfully
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Trip not found
+    delete:
+      summary: Delete hunting trip
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Trip deleted successfully
+        "404":
+          description: Trip not found
+  /locations:
+    get:
+      summary: Get all locations
+      description: Returns a paginated list of hunting locations with filtering
+      parameters:
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: region
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: isProtected
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: pageNumber
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 1
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+      - name: sortBy
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - name
+          - areaSize
+      - name: sortDirection
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+      responses:
+        "200":
+          description: List of locations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Location"
+    post:
+      summary: Create location
+      description: Creates a new hunting location
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Location"
+        required: true
+      responses:
+        "201":
+          description: Location created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /locations/{id}:
+    get:
+      summary: Get location by ID
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Location found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+        "404":
+          description: Location not found
+    put:
+      summary: Update location
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Location"
+        required: true
+      responses:
+        "200":
+          description: Location updated
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Location not found
+    delete:
+      summary: Delete location
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Location deleted
+        "404":
+          description: Location not found
+  /harvest-records:
+    get:
+      summary: Get all harvest records
+      description: Returns a paginated list of harvest records with filtering
+      parameters:
+      - name: tripId
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: animalType
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: isLegal
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: fromDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: toDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: pageNumber
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 1
+      - name: pageSize
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+      - name: sortBy
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - recordedAt
+          - quantity
+          - weight
+      - name: sortDirection
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - asc
+          - desc
+      responses:
+        "200":
+          description: List of harvest records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HarvestRecord"
+    post:
+      summary: Create harvest record
+      description: Adds a new harvest record for a specific hunting trip
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HarvestRecord"
+        required: true
+      responses:
+        "201":
+          description: Harvest record created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /harvest-records/{id}:
+    get:
+      summary: Get harvest record by ID
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Harvest record found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HarvestRecord"
+        "404":
+          description: Harvest record not found
+    put:
+      summary: Update harvest record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HarvestRecord"
+        required: true
+      responses:
+        "200":
+          description: Harvest record updated
+        "400":
+          description: Validation error
+        "404":
+          description: Harvest record not found
+    delete:
+      summary: Delete harvest record
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          description: Harvest record deleted
+        "404":
+          description: Harvest record not found
+  /statistics/harvest:
+    get:
+      summary: Get harvest statistics
+      description: Returns aggregated statistics for harvested animals
+      parameters:
+      - name: fromDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: toDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      responses:
+        "200":
+          description: Harvest statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_200_1"
+components:
+  schemas:
+    User:
+      required:
+      - email
+      - firstName
+      - lastName
+      type: object
+      properties:
+        id:
+          type: integer
+        firstName:
+          maxLength: 50
+          type: string
+        lastName:
+          maxLength: 50
+          type: string
+        email:
+          maxLength: 100
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum:
+          - Admin
+          - Hunter
+        createdAt:
+          type: string
+          format: date-time
+    Permit:
+      required:
+      - expirationDate
+      - issueDate
+      - permitNumber
+      - userId
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        permitNumber:
+          maxLength: 30
+          type: string
+        issueDate:
+          type: string
+          format: date-time
+        expirationDate:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+        permitType:
+          type: string
+    Location:
+      required:
+      - name
+      - region
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          maxLength: 100
+          type: string
+        region:
+          maxLength: 100
+          type: string
+        description:
+          maxLength: 255
+          type: string
+        areaSize:
+          type: number
+          format: double
+        isProtected:
+          type: boolean
+    HuntingTrip:
+      required:
+      - locationId
+      - permitId
+      - tripDate
+      - userId
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        locationId:
+          type: integer
+        permitId:
+          type: integer
+        tripDate:
+          type: string
+          format: date-time
+        durationHours:
+          type: integer
+        notes:
+          maxLength: 255
+          type: string
+    HarvestRecord:
+      required:
+      - animalType
+      - quantity
+      - tripId
+      type: object
+      properties:
+        id:
+          type: integer
+        tripId:
+          type: integer
+        animalType:
+          maxLength: 50
+          type: string
+        quantity:
+          type: integer
+        weight:
+          type: number
+          format: double
+        isLegal:
+          type: boolean
+        recordedAt:
+          type: string
+          format: date-time
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          example: https://example.com/errors/validation
+        title:
+          type: string
+          example: Validation Error
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+          example: Invalid input data
+        instance:
+          type: string
+          example: /users
+    auth_login_body:
+      required:
+      - email
+      - password
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    inline_response_200:
+      type: object
+      properties:
+        token:
+          type: string
+    inline_response_200_1:
+      type: object
+      properties:
+        totalAnimals:
+          type: integer
+        totalWeight:
+          type: number
+        mostHuntedAnimal:
+          type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
