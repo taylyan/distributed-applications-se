@@ -1,0 +1,49 @@
+@model HuntingPermitTripManagement.Web.Models.StatisticsViewModel
+
+@{
+    ViewData["Title"] = "Statistics";
+}
+
+<h1 class="mb-4">System Statistics</h1>
+
+<div class="row">
+
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-success text-white">
+                Harvest Statistics
+            </div>
+            <div class="card-body">
+                <p><strong>Total animals:</strong> @Model.Harvest.TotalAnimals</p>
+                <p><strong>Total weight:</strong> @Model.Harvest.TotalWeight kg</p>
+                <p><strong>Most hunted animal:</strong> @(Model.Harvest.MostHuntedAnimal ?? "N/A")</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-primary text-white">
+                Trip Statistics
+            </div>
+            <div class="card-body">
+                <p><strong>Total trips:</strong> @Model.Trips.TotalTrips</p>
+                <p><strong>Most visited location:</strong> @(Model.Trips.MostVisitedLocation ?? "N/A")</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-warning text-dark">
+                Permit Statistics
+            </div>
+            <div class="card-body">
+                <p><strong>Total permits:</strong> @Model.Permits.TotalPermits</p>
+                <p><strong>Active permits:</strong> @Model.Permits.ActivePermits</p>
+                <p><strong>Expired permits:</strong> @Model.Permits.ExpiredPermits</p>
+            </div>
+        </div>
+    </div>
+
+</div>

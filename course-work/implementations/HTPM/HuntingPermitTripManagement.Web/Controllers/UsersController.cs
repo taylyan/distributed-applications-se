@@ -19,10 +19,13 @@ public class UsersController : Controller
 
         var token = HttpContext.Session.GetString("JwtToken");
 
+        if (string.IsNullOrEmpty(token))
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
         client.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue(
-                "Bearer",
-                token);
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",token);
 
         var response = await client.GetAsync("Users");
 
