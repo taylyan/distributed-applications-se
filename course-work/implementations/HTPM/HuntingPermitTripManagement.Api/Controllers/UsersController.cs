@@ -2,11 +2,13 @@ using HuntingPermitTripManagement.Api.Data;
 using HuntingPermitTripManagement.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HuntingPermitTripManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
@@ -18,9 +20,49 @@ public class UsersController : ControllerBase
 
     // GET: api/users
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+    public async Task<ActionResult<IEnumerable<User>>> GetUsers(
+    string? firstName,
+    string? lastName,
+    int pageNumber = 1,
+    int pageSize = 10,
+    string? sortBy = "id",
+    string? sortDirection = "asc")
     {
-        var users = await _context.Users.ToListAsync();
+        var query = _context.Users.AsQueryable();
+
+        // Filtering
+        if (!string.IsNullOrWhiteSpace(firstName))
+        {
+            query = query.Where(u =>
+                u.FirstName.Contains(firstName));
+        }
+
+        if (!string.IsNullOrWhiteSpace(lastName))
+        {
+            query = query.Where(u =>
+                u.LastName.Contains(lastName));
+        }
+
+        // Sorting
+        query = (sortBy?.ToLower(), sortDirection?.ToLower()) switch
+        {
+            ("firstname", "desc") => query.OrderByDescending(u => u.FirstName),
+            ("firstname", _) => query.OrderBy(u => u.FirstName),
+
+            ("lastname", "desc") => query.OrderByDescending(u => u.LastName),
+            ("lastname", _) => query.OrderBy(u => u.LastName),
+
+            ("createdat", "desc") => query.OrderByDescending(u => u.CreatedAt),
+            ("createdat", _) => query.OrderBy(u => u.CreatedAt),
+
+            _ => query.OrderBy(u => u.Id)
+        };
+
+        // Pagination
+        var users = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
         return Ok(users);
     }
@@ -29,6 +71,7 @@ public class UsersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<User>> GetUser(int id)
     {
+
         var user = await _context.Users.FindAsync(id);
 
         if (user == null)

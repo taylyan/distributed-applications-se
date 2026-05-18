@@ -2,11 +2,13 @@ using HuntingPermitTripManagement.Api.Data;
 using HuntingPermitTripManagement.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HuntingPermitTripManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class HarvestRecordsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
