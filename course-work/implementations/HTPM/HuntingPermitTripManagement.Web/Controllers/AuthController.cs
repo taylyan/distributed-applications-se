@@ -2,6 +2,8 @@ using HuntingPermitTripManagement.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using System.Text.Json;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace HuntingPermitTripManagement.Web.Controllers;
 
@@ -52,12 +54,35 @@ public class AuthController : Controller
 
         HttpContext.Session.SetString("JwtToken", loginResponse!.Token);
 
+        var handler = new JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(loginResponse.Token);
+
+        var role = jwtToken.Claims
+            .FirstOrDefault(c => c.Type == ClaimTypes.Role || c.Type == "role")
+            ?.Value;
+
+        var userId = jwtToken.Claims
+            .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "nameid")
+            ?.Value;
+
+        if (!string.IsNullOrEmpty(role))
+        {
+            HttpContext.Session.SetString("UserRole", role);
+        }
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            HttpContext.Session.SetString("UserId", userId);
+        }
+
         return RedirectToAction("Index", "Home");
     }
 
     public IActionResult Logout()
     {
         HttpContext.Session.Remove("JwtToken");
+        HttpContext.Session.Remove("UserRole");
+        HttpContext.Session.Remove("UserId");
 
         return RedirectToAction("Login");
     }

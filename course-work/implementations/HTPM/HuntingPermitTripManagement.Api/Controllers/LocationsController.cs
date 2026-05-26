@@ -9,7 +9,7 @@ namespace HuntingPermitTripManagement.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class LocationsController : ControllerBase
+public class LocationsController : BaseApiController
 {
     private readonly ApplicationDbContext _context;
 
@@ -42,6 +42,11 @@ public class LocationsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Location>> CreateLocation(Location location)
     {
+        if (!IsAdmin)
+        {
+            return Forbid();
+        }
+
         _context.Locations.Add(location);
 
         await _context.SaveChangesAsync();
@@ -55,6 +60,11 @@ public class LocationsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateLocation(int id, Location location)
     {
+        if (!IsAdmin)
+        {
+            return Forbid();
+        }
+
         if (id != location.Id)
         {
             return BadRequest();
@@ -70,6 +80,11 @@ public class LocationsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteLocation(int id)
     {
+        if (!IsAdmin)
+        {
+            return Forbid();
+        }
+
         var location = await _context.Locations.FindAsync(id);
 
         if (location == null)

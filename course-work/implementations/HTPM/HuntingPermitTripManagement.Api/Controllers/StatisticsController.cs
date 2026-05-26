@@ -8,7 +8,7 @@ namespace HuntingPermitTripManagement.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class StatisticsController : ControllerBase
+public class StatisticsController : BaseApiController
 {
     private readonly ApplicationDbContext _context;
 
@@ -18,11 +18,17 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet("harvest")]
-    public async Task<IActionResult> GetHarvestStatistics(
-        DateTime? fromDate,
+    public async Task<IActionResult> GetHarvestStatistics( DateTime? fromDate,
         DateTime? toDate)
     {
-        var query = _context.HarvestRecords.AsQueryable();
+        var query = _context.HarvestRecords
+        .Include(h => h.Trip)
+        .AsQueryable();
+
+        if (!IsAdmin)
+        {
+            query = query.Where(h => h.Trip!.UserId == CurrentUserId);
+        }
 
         if (fromDate.HasValue)
         {
@@ -58,10 +64,19 @@ public class StatisticsController : ControllerBase
     [HttpGet("trips")]
     public async Task<IActionResult> GetTripStatistics()
     {
-        var totalTrips = await _context.HuntingTrips.CountAsync();
+        var query = _context.HuntingTrips
+        .Include(t => t.Location)
+        .AsQueryable();
 
-        var mostVisitedLocation = await _context.HuntingTrips
-            .Include(t => t.Location)
+        if (!IsAdmin)
+        {
+            query = query.Where(t => t.UserId == CurrentUserId);
+        }
+
+        var totalTrips = await query.CountAsync();
+
+
+        var mostVisitedLocation = await query
             .GroupBy(t => t.Location!.Name)
             .Select(g => new
             {
@@ -81,10 +96,16 @@ public class StatisticsController : ControllerBase
     [HttpGet("permits")]
     public async Task<IActionResult> GetPermitStatistics()
     {
-        var totalPermits = await _context.Permits.CountAsync();
-        var activePermits = await _context.Permits.CountAsync(p => p.IsActive);
-        var expiredPermits = await _context.Permits
-            .CountAsync(p => p.ExpirationDate < DateTime.UtcNow);
+        var query = _context.Permits.AsQueryable();
+
+        if (!IsAdmin)
+        {
+            query = query.Where(p => p.UserId == CurrentUserId);
+        }
+
+        var totalPermits = await query.CountAsync();
+        var activePermits = await query.CountAsync(p => p.IsActive);
+        var expiredPermits = await query.CountAsync(p => p.ExpirationDate < DateTime.UtcNow);
 
         return Ok(new
         {

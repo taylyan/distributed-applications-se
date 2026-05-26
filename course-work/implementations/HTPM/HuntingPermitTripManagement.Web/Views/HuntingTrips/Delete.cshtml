@@ -1,0 +1,54 @@
+@model HuntingPermitTripManagement.Web.Models.HuntingTripViewModel
+
+@{
+    ViewData["Title"] = "Delete Hunting Trip";
+}
+
+<h1 class="mb-4">Delete Hunting Trip</h1>
+
+<div class="alert alert-warning">
+    Are you sure you want to delete this hunting trip?
+</div>
+
+<table class="table table-bordered w-50">
+    <tr>
+        <th>Id</th>
+        <td>@Model.Id</td>
+    </tr>
+    <tr>
+        <th>User Id</th>
+        <td>@Model.UserId</td>
+    </tr>
+    <tr>
+        <th>Location Id</th>
+        <td>@Model.LocationId</td>
+    </tr>
+    <tr>
+        <th>Permit Id</th>
+        <td>@Model.PermitId</td>
+    </tr>
+    <tr>
+        <th>Trip Date</th>
+        <td>@Model.TripDate.ToString("yyyy-MM-dd")</td>
+    </tr>
+    <tr>
+        <th>Duration</th>
+        <td>@Model.DurationHours hours</td>
+    </tr>
+    <tr>
+        <th>Notes</th>
+        <td>@Model.Notes</td>
+    </tr>
+</table>
+
+<form asp-action="DeleteConfirmed" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+
+    <button type="submit" class="btn btn-danger">
+        Delete
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Cancel
+    </a>
+</form>

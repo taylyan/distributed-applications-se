@@ -1,28 +1,27 @@
 using HuntingPermitTripManagement.Web.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 using System.Net.Http.Headers;
 using System.Text;
-
+using System.Text.Json;
 
 namespace HuntingPermitTripManagement.Web.Controllers;
 
-public class UsersController : Controller
+public class LocationsController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
 
-    public UsersController(IHttpClientFactory httpClientFactory)
+    public LocationsController(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
     }
 
-    private HttpClient CreateAuthorizedClient()
+    private HttpClient? CreateAuthorizedClient()
     {
         var token = HttpContext.Session.GetString("JwtToken");
 
         if (string.IsNullOrEmpty(token))
         {
-            return null!;
+            return null;
         }
 
         var client = _httpClientFactory.CreateClient("ApiClient");
@@ -35,85 +34,67 @@ public class UsersController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var client = _httpClientFactory.CreateClient("ApiClient");
+        var client = CreateAuthorizedClient();
 
-        var token = HttpContext.Session.GetString("JwtToken");
-
-        if (string.IsNullOrEmpty(token))
+        if (client == null)
         {
             return RedirectToAction("Login", "Auth");
         }
 
-        client.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",token);
-
-        var response = await client.GetAsync("Users");
+        var response = await client.GetAsync("Locations");
 
         if (!response.IsSuccessStatusCode)
         {
-            ViewBag.Error = "Could not load users.";
-            return View(new List<UserViewModel>());
+            ViewBag.Error = "Could not load locations.";
+            return View(new List<LocationViewModel>());
         }
 
         var json = await response.Content.ReadAsStringAsync();
 
-        var users = JsonSerializer.Deserialize<List<UserViewModel>>(
+        var locations = JsonSerializer.Deserialize<List<LocationViewModel>>(
             json,
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
-        return View(users ?? new List<UserViewModel>());
+        return View(locations ?? new List<LocationViewModel>());
     }
 
     [HttpGet]
     public IActionResult Create()
     {
-        return View();
+        return View(new LocationViewModel());
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(UserViewModel model)
+    public async Task<IActionResult> Create(LocationViewModel model)
     {
-        var token = HttpContext.Session.GetString("JwtToken");
+        var client = CreateAuthorizedClient();
 
-        if (string.IsNullOrEmpty(token))
+        if (client == null)
         {
             return RedirectToAction("Login", "Auth");
         }
 
-        var client = _httpClientFactory.CreateClient("ApiClient");
-
-        client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", token);
-
-        var requestBody = new
-        {
-            firstName = model.FirstName,
-            lastName = model.LastName,
-            email = model.Email,
-            passwordHash = "123456",
-            role = model.Role
-        };
-
-        var json = JsonSerializer.Serialize(requestBody);
+        var json = JsonSerializer.Serialize(model);
 
         var content = new StringContent(
             json,
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PostAsync("Users", content);
+        var response = await client.PostAsync("Locations", content);
 
         if (!response.IsSuccessStatusCode)
         {
-            ViewBag.Error = "Could not create user.";
+            ViewBag.Error = "Could not create location.";
             return View(model);
         }
 
         return RedirectToAction("Index");
     }
+
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -124,7 +105,7 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var response = await client.GetAsync($"Users/{id}");
+        var response = await client.GetAsync($"Locations/{id}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -133,18 +114,18 @@ public class UsersController : Controller
 
         var json = await response.Content.ReadAsStringAsync();
 
-        var user = JsonSerializer.Deserialize<UserViewModel>(
+        var location = JsonSerializer.Deserialize<LocationViewModel>(
             json,
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
-        return View(user);
+        return View(location);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(UserViewModel model)
+    public async Task<IActionResult> Edit(LocationViewModel model)
     {
         var client = CreateAuthorizedClient();
 
@@ -153,29 +134,18 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var requestBody = new
-        {
-            id = model.Id,
-            firstName = model.FirstName,
-            lastName = model.LastName,
-            email = model.Email,
-            passwordHash = "123456",
-            role = model.Role,
-            createdAt = model.CreatedAt
-        };
-
-        var json = JsonSerializer.Serialize(requestBody);
+        var json = JsonSerializer.Serialize(model);
 
         var content = new StringContent(
             json,
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PutAsync($"Users/{model.Id}", content);
+        var response = await client.PutAsync($"Locations/{model.Id}", content);
 
         if (!response.IsSuccessStatusCode)
         {
-            ViewBag.Error = "Could not update user.";
+            ViewBag.Error = "Could not update location.";
             return View(model);
         }
 
@@ -192,7 +162,7 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var response = await client.GetAsync($"Users/{id}");
+        var response = await client.GetAsync($"Locations/{id}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -201,14 +171,14 @@ public class UsersController : Controller
 
         var json = await response.Content.ReadAsStringAsync();
 
-        var user = JsonSerializer.Deserialize<UserViewModel>(
+        var location = JsonSerializer.Deserialize<LocationViewModel>(
             json,
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
-        return View(user);
+        return View(location);
     }
 
     [HttpPost]
@@ -221,12 +191,7 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var response = await client.DeleteAsync($"Users/{id}");
-
-        if (!response.IsSuccessStatusCode)
-        {
-            ViewBag.Error = "Could not delete user.";
-        }
+        await client.DeleteAsync($"Locations/{id}");
 
         return RedirectToAction("Index");
     }

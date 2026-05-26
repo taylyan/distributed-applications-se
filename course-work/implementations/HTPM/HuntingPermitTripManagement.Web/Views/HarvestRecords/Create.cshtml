@@ -1,0 +1,51 @@
+@model HuntingPermitTripManagement.Web.Models.HarvestRecordViewModel
+
+@{
+    ViewData["Title"] = "Create Harvest Record";
+}
+
+<h1 class="mb-4">Create Harvest Record</h1>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+<form asp-action="Create" method="post" class="w-50">
+
+    <div class="mb-3">
+        <label asp-for="TripId" class="form-label">Trip Id</label>
+        <input asp-for="TripId" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="AnimalType" class="form-label">Animal Type</label>
+        <input asp-for="AnimalType" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Quantity" class="form-label">Quantity</label>
+        <input asp-for="Quantity" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Weight" class="form-label">Weight</label>
+        <input asp-for="Weight" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="RecordedAt" class="form-label">Recorded At</label>
+        <input asp-for="RecordedAt" type="date" class="form-control" />
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="IsLegal" class="form-check-input" />
+        <label asp-for="IsLegal" class="form-check-label">Legal Harvest</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>

@@ -1,0 +1,46 @@
+@model HuntingPermitTripManagement.Web.Models.LocationViewModel
+
+@{
+    ViewData["Title"] = "Delete Location";
+}
+
+<h1 class="mb-4">Delete Location</h1>
+
+<div class="alert alert-warning">
+    Are you sure you want to delete this location?
+</div>
+
+<table class="table table-bordered w-50">
+    <tr>
+        <th>Id</th>
+        <td>@Model.Id</td>
+    </tr>
+    <tr>
+        <th>Name</th>
+        <td>@Model.Name</td>
+    </tr>
+    <tr>
+        <th>Region</th>
+        <td>@Model.Region</td>
+    </tr>
+    <tr>
+        <th>Description</th>
+        <td>@Model.Description</td>
+    </tr>
+    <tr>
+        <th>Area Size</th>
+        <td>@Model.AreaSize km²</td>
+    </tr>
+</table>
+
+<form asp-action="DeleteConfirmed" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+
+    <button type="submit" class="btn btn-danger">
+        Delete
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Cancel
+    </a>
+</form>

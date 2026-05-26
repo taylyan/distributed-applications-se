@@ -1,0 +1,48 @@
+@model HuntingPermitTripManagement.Web.Models.LocationViewModel
+
+@{
+    ViewData["Title"] = "Edit Location";
+}
+
+<h1 class="mb-4">Edit Location</h1>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+<form asp-action="Edit" method="post" class="w-50">
+
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label">Name</label>
+        <input asp-for="Name" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Region" class="form-label">Region</label>
+        <input asp-for="Region" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label">Description</label>
+        <input asp-for="Description" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="AreaSize" class="form-label">Area Size</label>
+        <input asp-for="AreaSize" class="form-control" />
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="IsProtected" class="form-check-input" />
+        <label asp-for="IsProtected" class="form-check-label">Protected Area</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>

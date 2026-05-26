@@ -1,8 +1,184 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
+
+    var role = Context.Session.GetString("UserRole");
+    var isLoggedIn = !string.IsNullOrEmpty(Context.Session.GetString("JwtToken"));
+    var isAdmin = role == "Admin";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="hero-section mb-5">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold">
+                Hunting Permit & Trip Management System
+            </h1>
+
+            <p class="lead mt-3">
+                Manage hunting permits, trips, locations, harvest records and statistics through a distributed ASP.NET Core application.
+            </p>
+
+            @if (isLoggedIn)
+            {
+                <span class="badge bg-success fs-6">
+                    Logged in as @role
+                </span>
+            }
+            else
+            {
+                <span class="badge bg-secondary fs-6">
+                    Guest mode
+                </span>
+            }
+
+            <div class="mt-4">
+                @if (isLoggedIn)
+                {
+                    <a asp-controller="Statistics"
+                       asp-action="Index"
+                       class="btn btn-success btn-lg me-2">
+                        View Statistics
+                    </a>
+
+                    <a asp-controller="HuntingTrips"
+                       asp-action="Index"
+                       class="btn btn-outline-light btn-lg">
+                        View Trips
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Auth"
+                       asp-action="Login"
+                       class="btn btn-success btn-lg">
+                        Login
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-4 text-center d-none d-md-block">
+            <div class="hero-icon">
+                🦌
+            </div>
+        </div>
+    </div>
 </div>
+
+@if (isLoggedIn)
+{
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <div class="dashboard-icon">📊</div>
+                <h4>Statistics</h4>
+                <p>
+                    View harvest, trip and permit statistics.
+                </p>
+                <a asp-controller="Statistics"
+                   asp-action="Index"
+                   class="btn btn-success">
+                    Open Statistics
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <div class="dashboard-icon">🗺️</div>
+                <h4>Locations</h4>
+                <p>
+                    Browse hunting locations and protected areas.
+                </p>
+                <a asp-controller="Locations"
+                   asp-action="Index"
+                   class="btn btn-success">
+                    Open Locations
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <div class="dashboard-icon">🎯</div>
+                <h4>Hunting Trips</h4>
+                <p>
+                    Manage hunting trips and related trip information.
+                </p>
+                <a asp-controller="HuntingTrips"
+                   asp-action="Index"
+                   class="btn btn-success">
+                    Open Trips
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <div class="dashboard-icon">📄</div>
+                <h4>Permits</h4>
+                <p>
+                    View hunting permits and their validity status.
+                </p>
+                <a asp-controller="Permits"
+                   asp-action="Index"
+                   class="btn btn-success">
+                    Open Permits
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="dashboard-card">
+                <div class="dashboard-icon">🐗</div>
+                <h4>Harvest Records</h4>
+                <p>
+                    Track harvested animals, quantity, weight and legality.
+                </p>
+                <a asp-controller="HarvestRecords"
+                   asp-action="Index"
+                   class="btn btn-success">
+                    Open Harvest
+                </a>
+            </div>
+        </div>
+
+        @if (isAdmin)
+        {
+            <div class="col-md-4">
+                <div class="dashboard-card admin-card">
+                    <div class="dashboard-icon">👥</div>
+                    <h4>User Management</h4>
+                    <p>
+                        Admin-only section for managing system users.
+                    </p>
+                    <a asp-controller="Users"
+                       asp-action="Index"
+                       class="btn btn-dark">
+                        Manage Users
+                    </a>
+                </div>
+            </div>
+        }
+
+    </div>
+}
+else
+{
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="dashboard-card text-center">
+                <h3>Welcome</h3>
+                <p>
+                    Please log in to access the hunting management dashboard.
+                </p>
+
+                <a asp-controller="Auth"
+                   asp-action="Login"
+                   class="btn btn-success">
+                    Go to Login
+                </a>
+            </div>
+        </div>
+    </div>
+}

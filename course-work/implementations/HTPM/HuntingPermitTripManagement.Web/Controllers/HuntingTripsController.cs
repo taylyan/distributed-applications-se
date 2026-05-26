@@ -1,28 +1,27 @@
 using HuntingPermitTripManagement.Web.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 using System.Net.Http.Headers;
 using System.Text;
-
+using System.Text.Json;
 
 namespace HuntingPermitTripManagement.Web.Controllers;
 
-public class UsersController : Controller
+public class HuntingTripsController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
 
-    public UsersController(IHttpClientFactory httpClientFactory)
+    public HuntingTripsController(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
     }
 
-    private HttpClient CreateAuthorizedClient()
+    private HttpClient? CreateAuthorizedClient()
     {
         var token = HttpContext.Session.GetString("JwtToken");
 
         if (string.IsNullOrEmpty(token))
         {
-            return null!;
+            return null;
         }
 
         var client = _httpClientFactory.CreateClient("ApiClient");
@@ -35,85 +34,71 @@ public class UsersController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var client = _httpClientFactory.CreateClient("ApiClient");
+        var client = CreateAuthorizedClient();
 
-        var token = HttpContext.Session.GetString("JwtToken");
-
-        if (string.IsNullOrEmpty(token))
+        if (client == null)
         {
             return RedirectToAction("Login", "Auth");
         }
 
-        client.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",token);
-
-        var response = await client.GetAsync("Users");
+        var response = await client.GetAsync("HuntingTrips");
 
         if (!response.IsSuccessStatusCode)
         {
-            ViewBag.Error = "Could not load users.";
-            return View(new List<UserViewModel>());
+            ViewBag.Error = "Could not load hunting trips.";
+            return View(new List<HuntingTripViewModel>());
         }
 
         var json = await response.Content.ReadAsStringAsync();
 
-        var users = JsonSerializer.Deserialize<List<UserViewModel>>(
+        var trips = JsonSerializer.Deserialize<List<HuntingTripViewModel>>(
             json,
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
-        return View(users ?? new List<UserViewModel>());
+        return View(trips ?? new List<HuntingTripViewModel>());
     }
 
     [HttpGet]
     public IActionResult Create()
     {
-        return View();
+        return View(new HuntingTripViewModel
+        {
+            TripDate = DateTime.Today,
+            DurationHours = 1
+        });
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(UserViewModel model)
+    public async Task<IActionResult> Create(HuntingTripViewModel model)
     {
-        var token = HttpContext.Session.GetString("JwtToken");
+        var client = CreateAuthorizedClient();
 
-        if (string.IsNullOrEmpty(token))
+        if (client == null)
         {
             return RedirectToAction("Login", "Auth");
         }
 
-        var client = _httpClientFactory.CreateClient("ApiClient");
-
-        client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", token);
-
-        var requestBody = new
-        {
-            firstName = model.FirstName,
-            lastName = model.LastName,
-            email = model.Email,
-            passwordHash = "123456",
-            role = model.Role
-        };
-
-        var json = JsonSerializer.Serialize(requestBody);
+        var json = JsonSerializer.Serialize(model);
 
         var content = new StringContent(
             json,
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PostAsync("Users", content);
+        var response = await client.PostAsync("HuntingTrips", content);
 
         if (!response.IsSuccessStatusCode)
         {
-            ViewBag.Error = "Could not create user.";
+            ViewBag.Error = "Could not create hunting trip. Make sure User Id, Location Id and Permit Id exist.";
             return View(model);
         }
 
         return RedirectToAction("Index");
     }
+
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -124,7 +109,7 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var response = await client.GetAsync($"Users/{id}");
+        var response = await client.GetAsync($"HuntingTrips/{id}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -133,18 +118,18 @@ public class UsersController : Controller
 
         var json = await response.Content.ReadAsStringAsync();
 
-        var user = JsonSerializer.Deserialize<UserViewModel>(
+        var trip = JsonSerializer.Deserialize<HuntingTripViewModel>(
             json,
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
-        return View(user);
+        return View(trip);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(UserViewModel model)
+    public async Task<IActionResult> Edit(HuntingTripViewModel model)
     {
         var client = CreateAuthorizedClient();
 
@@ -153,29 +138,18 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var requestBody = new
-        {
-            id = model.Id,
-            firstName = model.FirstName,
-            lastName = model.LastName,
-            email = model.Email,
-            passwordHash = "123456",
-            role = model.Role,
-            createdAt = model.CreatedAt
-        };
-
-        var json = JsonSerializer.Serialize(requestBody);
+        var json = JsonSerializer.Serialize(model);
 
         var content = new StringContent(
             json,
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PutAsync($"Users/{model.Id}", content);
+        var response = await client.PutAsync($"HuntingTrips/{model.Id}", content);
 
         if (!response.IsSuccessStatusCode)
         {
-            ViewBag.Error = "Could not update user.";
+            ViewBag.Error = "Could not update hunting trip. Make sure User Id, Location Id and Permit Id exist.";
             return View(model);
         }
 
@@ -192,7 +166,7 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var response = await client.GetAsync($"Users/{id}");
+        var response = await client.GetAsync($"HuntingTrips/{id}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -201,14 +175,14 @@ public class UsersController : Controller
 
         var json = await response.Content.ReadAsStringAsync();
 
-        var user = JsonSerializer.Deserialize<UserViewModel>(
+        var trip = JsonSerializer.Deserialize<HuntingTripViewModel>(
             json,
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
-        return View(user);
+        return View(trip);
     }
 
     [HttpPost]
@@ -221,12 +195,7 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var response = await client.DeleteAsync($"Users/{id}");
-
-        if (!response.IsSuccessStatusCode)
-        {
-            ViewBag.Error = "Could not delete user.";
-        }
+        await client.DeleteAsync($"HuntingTrips/{id}");
 
         return RedirectToAction("Index");
     }

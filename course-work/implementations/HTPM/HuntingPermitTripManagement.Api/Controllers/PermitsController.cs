@@ -9,7 +9,7 @@ namespace HuntingPermitTripManagement.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class PermitsController : ControllerBase
+public class PermitsController : BaseApiController 
 {
     private readonly ApplicationDbContext _context;
 
@@ -21,9 +21,17 @@ public class PermitsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Permit>>> GetPermits()
     {
-        var permits = await _context.Permits
-            .Include(p => p.User)
-            .ToListAsync();
+        var query = _context.Permits
+        .Include(p => p.User)
+        .AsQueryable();
+
+        if (!IsAdmin)
+        {
+            query = query.Where(p => p.UserId == CurrentUserId);
+        }
+
+        var permits = await query.ToListAsync();
+      
 
         return Ok(permits);
     }
@@ -31,6 +39,7 @@ public class PermitsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<Permit>> GetPermit(int id)
     {
+
         var permit = await _context.Permits
             .Include(p => p.User)
             .FirstOrDefaultAsync(p => p.Id == id);
@@ -40,12 +49,21 @@ public class PermitsController : ControllerBase
             return NotFound();
         }
 
+        if (!IsAdmin && permit.UserId != CurrentUserId)
+        {
+            return Forbid();
+        }
         return Ok(permit);
     }
 
     [HttpPost]
     public async Task<ActionResult<Permit>> CreatePermit(Permit permit)
     {
+        if (!IsAdmin)
+        {
+            return Forbid();
+        }
+
         var userExists = await _context.Users.AnyAsync(u => u.Id == permit.UserId);
 
         if (!userExists)
@@ -70,9 +88,22 @@ public class PermitsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdatePermit(int id, Permit permit)
     {
+        if (!IsAdmin)
+        {
+            return Forbid();
+        }
+
         if (id != permit.Id)
         {
             return BadRequest();
+        }
+
+        var existingPermit = await _context.Permits
+       .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (existingPermit == null)
+        {
+            return NotFound();
         }
 
         var userExists = await _context.Users.AnyAsync(u => u.Id == permit.UserId);
@@ -87,7 +118,13 @@ public class PermitsController : ControllerBase
             return BadRequest("Expiration date must be after issue date.");
         }
 
-        _context.Entry(permit).State = EntityState.Modified;
+        existingPermit.UserId = permit.UserId;
+        existingPermit.PermitNumber = permit.PermitNumber;
+        existingPermit.IssueDate = permit.IssueDate;
+        existingPermit.ExpirationDate = permit.ExpirationDate;
+        existingPermit.IsActive = permit.IsActive;
+        existingPermit.PermitType = permit.PermitType;
+
         await _context.SaveChangesAsync();
 
         return NoContent();
@@ -96,6 +133,11 @@ public class PermitsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePermit(int id)
     {
+        if (!IsAdmin)
+        {
+            return Forbid();
+        }
+
         var permit = await _context.Permits.FindAsync(id);
 
         if (permit == null)

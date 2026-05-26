@@ -1,28 +1,27 @@
 using HuntingPermitTripManagement.Web.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 using System.Net.Http.Headers;
 using System.Text;
-
+using System.Text.Json;
 
 namespace HuntingPermitTripManagement.Web.Controllers;
 
-public class UsersController : Controller
+public class HarvestRecordsController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
 
-    public UsersController(IHttpClientFactory httpClientFactory)
+    public HarvestRecordsController(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
     }
 
-    private HttpClient CreateAuthorizedClient()
+    private HttpClient? CreateAuthorizedClient()
     {
         var token = HttpContext.Session.GetString("JwtToken");
 
         if (string.IsNullOrEmpty(token))
         {
-            return null!;
+            return null;
         }
 
         var client = _httpClientFactory.CreateClient("ApiClient");
@@ -35,66 +34,63 @@ public class UsersController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var client = _httpClientFactory.CreateClient("ApiClient");
+        var client = CreateAuthorizedClient();
 
-        var token = HttpContext.Session.GetString("JwtToken");
-
-        if (string.IsNullOrEmpty(token))
+        if (client == null)
         {
             return RedirectToAction("Login", "Auth");
         }
 
-        client.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",token);
-
-        var response = await client.GetAsync("Users");
+        var response = await client.GetAsync("HarvestRecords");
 
         if (!response.IsSuccessStatusCode)
         {
-            ViewBag.Error = "Could not load users.";
-            return View(new List<UserViewModel>());
+            ViewBag.Error = "Could not load harvest records.";
+            return View(new List<HarvestRecordViewModel>());
         }
 
         var json = await response.Content.ReadAsStringAsync();
 
-        var users = JsonSerializer.Deserialize<List<UserViewModel>>(
+        var records = JsonSerializer.Deserialize<List<HarvestRecordViewModel>>(
             json,
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
-        return View(users ?? new List<UserViewModel>());
+        return View(records ?? new List<HarvestRecordViewModel>());
     }
 
     [HttpGet]
     public IActionResult Create()
     {
-        return View();
+        return View(new HarvestRecordViewModel
+        {
+            Quantity = 1,
+            Weight = 1,
+            IsLegal = true,
+            RecordedAt = DateTime.Today
+        });
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(UserViewModel model)
+    public async Task<IActionResult> Create(HarvestRecordViewModel model)
     {
-        var token = HttpContext.Session.GetString("JwtToken");
+        var client = CreateAuthorizedClient();
 
-        if (string.IsNullOrEmpty(token))
+        if (client == null)
         {
             return RedirectToAction("Login", "Auth");
         }
 
-        var client = _httpClientFactory.CreateClient("ApiClient");
-
-        client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", token);
-
         var requestBody = new
         {
-            firstName = model.FirstName,
-            lastName = model.LastName,
-            email = model.Email,
-            passwordHash = "123456",
-            role = model.Role
+            tripId = model.TripId,
+            animalType = model.AnimalType,
+            quantity = model.Quantity,
+            weight = model.Weight,
+            isLegal = model.IsLegal,
+            recordedAt = model.RecordedAt
         };
 
         var json = JsonSerializer.Serialize(requestBody);
@@ -104,16 +100,17 @@ public class UsersController : Controller
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PostAsync("Users", content);
+        var response = await client.PostAsync("HarvestRecords", content);
 
         if (!response.IsSuccessStatusCode)
         {
-            ViewBag.Error = "Could not create user.";
+            ViewBag.Error = "Could not create harvest record. Make sure Trip Id exists, Quantity > 0 and Weight > 0.";
             return View(model);
         }
 
         return RedirectToAction("Index");
     }
+
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -124,7 +121,7 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var response = await client.GetAsync($"Users/{id}");
+        var response = await client.GetAsync($"HarvestRecords/{id}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -133,18 +130,18 @@ public class UsersController : Controller
 
         var json = await response.Content.ReadAsStringAsync();
 
-        var user = JsonSerializer.Deserialize<UserViewModel>(
+        var record = JsonSerializer.Deserialize<HarvestRecordViewModel>(
             json,
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
-        return View(user);
+        return View(record);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(UserViewModel model)
+    public async Task<IActionResult> Edit(HarvestRecordViewModel model)
     {
         var client = CreateAuthorizedClient();
 
@@ -156,12 +153,12 @@ public class UsersController : Controller
         var requestBody = new
         {
             id = model.Id,
-            firstName = model.FirstName,
-            lastName = model.LastName,
-            email = model.Email,
-            passwordHash = "123456",
-            role = model.Role,
-            createdAt = model.CreatedAt
+            tripId = model.TripId,
+            animalType = model.AnimalType,
+            quantity = model.Quantity,
+            weight = model.Weight,
+            isLegal = model.IsLegal,
+            recordedAt = model.RecordedAt
         };
 
         var json = JsonSerializer.Serialize(requestBody);
@@ -171,11 +168,11 @@ public class UsersController : Controller
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PutAsync($"Users/{model.Id}", content);
+        var response = await client.PutAsync($"HarvestRecords/{model.Id}", content);
 
         if (!response.IsSuccessStatusCode)
         {
-            ViewBag.Error = "Could not update user.";
+            ViewBag.Error = "Could not update harvest record. Make sure Trip Id exists, Quantity > 0 and Weight > 0.";
             return View(model);
         }
 
@@ -192,7 +189,7 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var response = await client.GetAsync($"Users/{id}");
+        var response = await client.GetAsync($"HarvestRecords/{id}");
 
         if (!response.IsSuccessStatusCode)
         {
@@ -201,14 +198,14 @@ public class UsersController : Controller
 
         var json = await response.Content.ReadAsStringAsync();
 
-        var user = JsonSerializer.Deserialize<UserViewModel>(
+        var record = JsonSerializer.Deserialize<HarvestRecordViewModel>(
             json,
             new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
-        return View(user);
+        return View(record);
     }
 
     [HttpPost]
@@ -221,12 +218,7 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var response = await client.DeleteAsync($"Users/{id}");
-
-        if (!response.IsSuccessStatusCode)
-        {
-            ViewBag.Error = "Could not delete user.";
-        }
+        await client.DeleteAsync($"HarvestRecords/{id}");
 
         return RedirectToAction("Index");
     }

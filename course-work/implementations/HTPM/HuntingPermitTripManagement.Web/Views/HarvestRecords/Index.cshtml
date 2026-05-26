@@ -1,0 +1,77 @@
+@model List<HuntingPermitTripManagement.Web.Models.HarvestRecordViewModel>
+
+@{
+    ViewData["Title"] = "Harvest Records";
+}
+
+<h1 class="mb-4">Harvest Records</h1>
+
+<a asp-controller="HarvestRecords"
+   asp-action="Create"
+   class="btn btn-success mb-3">
+    Create Harvest Record
+</a>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+<div class="table-responsive">
+ 
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Trip Id</th>
+                <th>Animal Type</th>
+                <th>Quantity</th>
+                <th>Weight</th>
+                <th>Legal</th>
+                <th>Recorded At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var record in Model)
+            {
+                <tr>
+                    <td>@record.Id</td>
+                    <td>@record.TripId</td>
+                    <td>@record.AnimalType</td>
+                    <td>@record.Quantity</td>
+                    <td>@record.Weight kg</td>
+                    <td>
+                        @if (record.IsLegal)
+                        {
+                            <span class="badge bg-success">Legal</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Illegal</span>
+                        }
+                    </td>
+                    <td>@record.RecordedAt.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        <a asp-controller="HarvestRecords"
+                           asp-action="Edit"
+                           asp-route-id="@record.Id"
+                           class="btn btn-sm btn-warning">
+                            Edit
+                        </a>
+
+                        <a asp-controller="HarvestRecords"
+                           asp-action="Delete"
+                           asp-route-id="@record.Id"
+                           class="btn btn-sm btn-danger">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>

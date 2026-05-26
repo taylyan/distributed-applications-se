@@ -13,6 +13,39 @@ Hunting Permit & Trip Management System is a distributed web application develop
 
 The system allows users to manage hunters, hunting permits, hunting locations, hunting trips, harvest records, and statistical reports. It consists of a RESTful Web API backend, an ASP.NET Core MVC frontend client, and a SQL Server database.
 
+The application supports role-based access control with two main roles: **Admin** and **Hunter**.
+
+---
+
+## User Roles
+
+### Admin
+
+The Admin role has full access to the system.
+
+Admin users can:
+
+- View all users
+- Create, edit, and delete users
+- View, create, edit, and delete hunting permits
+- View, create, edit, and delete hunting locations
+- View, create, edit, and delete hunting trips
+- View, create, edit, and delete harvest records
+- View global system statistics
+
+### Hunter
+
+The Hunter role has limited access.
+
+Hunter users can:
+
+- View only their own personal information
+- View only their own permits
+- View and manage only their own hunting trips
+- View and manage only harvest records related to their own trips
+- View statistics based only on their own data
+- View hunting locations without managing them
+
 ---
 
 ## Main Features

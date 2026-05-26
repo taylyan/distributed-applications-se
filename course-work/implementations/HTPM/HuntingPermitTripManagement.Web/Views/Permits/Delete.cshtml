@@ -1,0 +1,46 @@
+@model HuntingPermitTripManagement.Web.Models.PermitViewModel
+
+@{
+    ViewData["Title"] = "Delete Permit";
+}
+
+<h1 class="mb-4">Delete Permit</h1>
+
+<div class="alert alert-warning">
+    Are you sure you want to delete this permit?
+</div>
+
+<table class="table table-bordered w-50">
+    <tr>
+        <th>Id</th>
+        <td>@Model.Id</td>
+    </tr>
+    <tr>
+        <th>User Id</th>
+        <td>@Model.UserId</td>
+    </tr>
+    <tr>
+        <th>Permit Number</th>
+        <td>@Model.PermitNumber</td>
+    </tr>
+    <tr>
+        <th>Permit Type</th>
+        <td>@Model.PermitType</td>
+    </tr>
+    <tr>
+        <th>Active</th>
+        <td>@Model.IsActive</td>
+    </tr>
+</table>
+
+<form asp-action="DeleteConfirmed" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+
+    <button type="submit" class="btn btn-danger">
+        Delete
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Cancel
+    </a>
+</form>

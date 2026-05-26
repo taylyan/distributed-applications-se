@@ -1,0 +1,89 @@
+@model List<HuntingPermitTripManagement.Web.Models.PermitViewModel>
+
+@{
+    ViewData["Title"] = "Permits";
+    var role = Context.Session.GetString("UserRole");
+    var isAdmin = role == "Admin";
+}
+
+<h1 class="mb-4">Permits</h1>
+
+@if (isAdmin)
+{
+    <a asp-controller="Permits"
+       asp-action="Create"
+       class="btn btn-success mb-3">
+        Create Permit
+    </a>
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+<div class="table-responsive">
+    
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>User Id</th>
+                <th>Permit Number</th>
+                <th>Type</th>
+                <th>Issue Date</th>
+                <th>Expiration Date</th>
+                <th>Active</th>
+
+                @if (isAdmin)
+                {
+                    <th>Actions</th>
+                }
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var permit in Model)
+            {
+                <tr>
+                    <td>@permit.Id</td>
+                    <td>@permit.UserId</td>
+                    <td>@permit.PermitNumber</td>
+                    <td>@permit.PermitType</td>
+                    <td>@permit.IssueDate.ToString("yyyy-MM-dd")</td>
+                    <td>@permit.ExpirationDate.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        @if (permit.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </td>
+
+                    @if (isAdmin)
+                    {
+                        <td>
+                            <a asp-controller="Permits"
+                               asp-action="Edit"
+                               asp-route-id="@permit.Id"
+                               class="btn btn-sm btn-warning">
+                                Edit
+                            </a>
+
+                            <a asp-controller="Permits"
+                               asp-action="Delete"
+                               asp-route-id="@permit.Id"
+                               class="btn btn-sm btn-danger">
+                                Delete
+                            </a>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

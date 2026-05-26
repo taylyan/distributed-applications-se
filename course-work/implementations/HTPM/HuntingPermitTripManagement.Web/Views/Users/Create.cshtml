@@ -1,0 +1,44 @@
+@model HuntingPermitTripManagement.Web.Models.UserViewModel
+
+@{
+    ViewData["Title"] = "Create User";
+}
+
+<h1 class="mb-4">Create User</h1>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+<form asp-action="Create" method="post" class="w-50">
+
+    <div class="mb-3">
+        <label asp-for="FirstName" class="form-label">First Name</label>
+        <input asp-for="FirstName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="LastName" class="form-label">Last Name</label>
+        <input asp-for="LastName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label">Email</label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Role" class="form-label">Role</label>
+        <select asp-for="Role" class="form-control">
+            <option value="Hunter">Hunter</option>
+            <option value="Admin">Admin</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
+
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>

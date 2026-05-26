@@ -9,7 +9,7 @@ namespace HuntingPermitTripManagement.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class HarvestRecordsController : ControllerBase
+public class HarvestRecordsController : BaseApiController
 {
     private readonly ApplicationDbContext _context;
 
@@ -21,9 +21,16 @@ public class HarvestRecordsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<HarvestRecord>>> GetHarvestRecords()
     {
-        var records = await _context.HarvestRecords
-            .Include(r => r.Trip)
-            .ToListAsync();
+        var query = _context.HarvestRecords
+        .Include(r => r.Trip)
+        .AsQueryable();
+
+        if (!IsAdmin)
+        {
+            query = query.Where(r => r.Trip!.UserId == CurrentUserId);
+        }
+
+        var records = await query.ToListAsync();
 
         return Ok(records);
     }
@@ -40,18 +47,28 @@ public class HarvestRecordsController : ControllerBase
             return NotFound();
         }
 
+        if (!IsAdmin && record.Trip!.UserId != CurrentUserId)
+        {
+            return Forbid();
+        }
+
         return Ok(record);
     }
 
     [HttpPost]
     public async Task<ActionResult<HarvestRecord>> CreateHarvestRecord(HarvestRecord record)
     {
-        var tripExists = await _context.HuntingTrips
-            .AnyAsync(t => t.Id == record.TripId);
+        var trip = await _context.HuntingTrips
+        .FirstOrDefaultAsync(t => t.Id == record.TripId);
 
-        if (!tripExists)
+        if (trip == null)
         {
             return BadRequest("Trip does not exist.");
+        }
+
+        if (!IsAdmin && trip.UserId != CurrentUserId)
+        {
+            return Forbid();
         }
 
         if (record.Quantity <= 0)
@@ -82,7 +99,44 @@ public class HarvestRecordsController : ControllerBase
             return BadRequest();
         }
 
-        _context.Entry(record).State = EntityState.Modified;
+        var existingRecord = await _context.HarvestRecords
+            .Include(r => r.Trip)
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+        if (existingRecord == null)
+        {
+            return NotFound();
+        }
+
+        var trip = await _context.HuntingTrips
+            .FirstOrDefaultAsync(t => t.Id == record.TripId);
+
+        if (trip == null)
+        {
+            return BadRequest("Trip does not exist.");
+        }
+
+        if (!IsAdmin && trip.UserId != CurrentUserId)
+        {
+            return Forbid();
+        }
+
+        if (record.Quantity <= 0)
+        {
+            return BadRequest("Quantity must be greater than 0.");
+        }
+
+        if (record.Weight <= 0)
+        {
+            return BadRequest("Weight must be greater than 0.");
+        }
+
+        existingRecord.TripId = record.TripId;
+        existingRecord.AnimalType = record.AnimalType;
+        existingRecord.Quantity = record.Quantity;
+        existingRecord.Weight = record.Weight;
+        existingRecord.IsLegal = record.IsLegal;
+        existingRecord.RecordedAt = record.RecordedAt;
 
         await _context.SaveChangesAsync();
 
@@ -92,11 +146,18 @@ public class HarvestRecordsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteHarvestRecord(int id)
     {
-        var record = await _context.HarvestRecords.FindAsync(id);
+        var record = await _context.HarvestRecords
+            .Include(r => r.Trip)
+            .FirstOrDefaultAsync(r => r.Id == id);
 
         if (record == null)
         {
             return NotFound();
+        }
+
+        if (!IsAdmin && record.Trip!.UserId != CurrentUserId)
+        {
+            return Forbid();
         }
 
         _context.HarvestRecords.Remove(record);

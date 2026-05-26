@@ -1,0 +1,87 @@
+@model List<HuntingPermitTripManagement.Web.Models.LocationViewModel>
+
+@{
+    ViewData["Title"] = "Locations";
+    var role = Context.Session.GetString("UserRole");
+    var isAdmin = role == "Admin";
+}
+
+<h1 class="mb-4">Locations</h1>
+
+@if (isAdmin)
+{
+    <a asp-controller="Locations"
+       asp-action="Create"
+       class="btn btn-success mb-3">
+        Create Location
+    </a>
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+<div class="table-responsive">
+   
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Region</th>
+                <th>Description</th>
+                <th>Area Size</th>
+                <th>Protected</th>
+
+                @if (isAdmin)
+                {
+                    <th>Actions</th>
+                }
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var location in Model)
+            {
+                <tr>
+                    <td>@location.Id</td>
+                    <td>@location.Name</td>
+                    <td>@location.Region</td>
+                    <td>@location.Description</td>
+                    <td>@location.AreaSize km²</td>
+                    <td>
+                        @if (location.IsProtected)
+                        {
+                            <span class="badge bg-danger">Protected</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Allowed</span>
+                        }
+                    </td>
+
+                    @if (isAdmin)
+                    {
+                        <td>
+                            <a asp-controller="Locations"
+                               asp-action="Edit"
+                               asp-route-id="@location.Id"
+                               class="btn btn-sm btn-warning">
+                                Edit
+                            </a>
+
+                            <a asp-controller="Locations"
+                               asp-action="Delete"
+                               asp-route-id="@location.Id"
+                               class="btn btn-sm btn-danger">
+                                Delete
+                            </a>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

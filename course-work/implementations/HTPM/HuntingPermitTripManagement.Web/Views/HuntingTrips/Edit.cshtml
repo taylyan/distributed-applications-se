@@ -1,0 +1,53 @@
+@model HuntingPermitTripManagement.Web.Models.HuntingTripViewModel
+
+@{
+    ViewData["Title"] = "Edit Hunting Trip";
+}
+
+<h1 class="mb-4">Edit Hunting Trip</h1>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+
+<form asp-action="Edit" method="post" class="w-50">
+
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="UserId" class="form-label">User Id</label>
+        <input asp-for="UserId" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="LocationId" class="form-label">Location Id</label>
+        <input asp-for="LocationId" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PermitId" class="form-label">Permit Id</label>
+        <input asp-for="PermitId" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TripDate" class="form-label">Trip Date</label>
+        <input asp-for="TripDate" type="date" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DurationHours" class="form-label">Duration Hours</label>
+        <input asp-for="DurationHours" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Notes" class="form-label">Notes</label>
+        <input asp-for="Notes" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>

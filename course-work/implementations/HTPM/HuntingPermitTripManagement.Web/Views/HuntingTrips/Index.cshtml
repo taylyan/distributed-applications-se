@@ -1,0 +1,68 @@
+@model List<HuntingPermitTripManagement.Web.Models.HuntingTripViewModel>
+
+@{
+    ViewData["Title"] = "Hunting Trips";
+}
+
+<h1 class="mb-4">Hunting Trips</h1>
+
+<a asp-controller="HuntingTrips"
+   asp-action="Create"
+   class="btn btn-success mb-3">
+    Create Hunting Trip
+</a>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.Error
+    </div>
+}
+<div class="table-responsive">
+ 
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>User Id</th>
+                <th>Location Id</th>
+                <th>Permit Id</th>
+                <th>Trip Date</th>
+                <th>Duration</th>
+                <th>Notes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var trip in Model)
+            {
+                <tr>
+                    <td>@trip.Id</td>
+                    <td>@trip.UserId</td>
+                    <td>@trip.LocationId</td>
+                    <td>@trip.PermitId</td>
+                    <td>@trip.TripDate.ToString("yyyy-MM-dd")</td>
+                    <td>@trip.DurationHours hours</td>
+                    <td>@trip.Notes</td>
+                    <td>
+                        <a asp-controller="HuntingTrips"
+                           asp-action="Edit"
+                           asp-route-id="@trip.Id"
+                           class="btn btn-sm btn-warning">
+                            Edit
+                        </a>
+
+                        <a asp-controller="HuntingTrips"
+                           asp-action="Delete"
+                           asp-route-id="@trip.Id"
+                           class="btn btn-sm btn-danger">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>

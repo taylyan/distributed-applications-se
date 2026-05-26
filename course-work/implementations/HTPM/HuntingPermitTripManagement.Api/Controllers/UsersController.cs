@@ -8,8 +8,8 @@ namespace HuntingPermitTripManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
-public class UsersController : ControllerBase
+//[Authorize]
+public class UsersController : BaseApiController //ControllerBase
 {
     private readonly ApplicationDbContext _context;
 
@@ -29,6 +29,11 @@ public class UsersController : ControllerBase
     string? sortDirection = "asc")
     {
         var query = _context.Users.AsQueryable();
+
+        if (!IsAdmin)
+        {
+            query = query.Where(u => u.Id == CurrentUserId);
+        }
 
         // Filtering
         if (!string.IsNullOrWhiteSpace(firstName))
@@ -71,6 +76,10 @@ public class UsersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<User>> GetUser(int id)
     {
+        if (!IsAdmin && id != CurrentUserId)
+        {
+            return Forbid();
+        }
 
         var user = await _context.Users.FindAsync(id);
 
@@ -86,6 +95,11 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<User>> CreateUser(User user)
     {
+        if (!IsAdmin)
+        {
+            return Forbid();
+        }
+
         _context.Users.Add(user);
 
         await _context.SaveChangesAsync();
@@ -100,6 +114,11 @@ public class UsersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(int id, User user)
     {
+        if (!IsAdmin)
+        {
+            return Forbid();
+        }
+
         if (id != user.Id)
         {
             return BadRequest();
@@ -116,6 +135,11 @@ public class UsersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
+        if (!IsAdmin)
+        {
+            return Forbid();
+        }
+
         var user = await _context.Users.FindAsync(id);
 
         if (user == null)
